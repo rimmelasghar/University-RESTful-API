@@ -18,6 +18,7 @@ class User(BaseModel):
     full_name: Union[str, None] = None
     disabled: Union[bool, None] = None
 
+
 class UserIn(BaseModel):
     username: str
     email: Union[str, None] = None
@@ -27,3 +28,15 @@ class UserIn(BaseModel):
 
 class UserInDB(User):
     password: str
+    
+class TodoSchema(BaseModel):
+    id : int
+    username: str
+    todo : str
+    description: Union[str,None] = None
+    status: Union[bool, None] = None
+    
+class TodoIn(BaseModel):
+    todo : str
+    description: Union[str,None] = None
+    status: Union[bool, None] = None

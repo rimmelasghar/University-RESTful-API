@@ -17,3 +17,13 @@ class loginTable(Base):
 
     __table_args__ = (UniqueConstraint('username'),)
 
+class Todo(Base):
+    __tablename__ = "todo"
+    
+    id = Column(Integer,primary_key=True)
+    username = Column(String(50))
+    todo = Column(String(50))
+    description = Column(String(255))
+    status = Column(Boolean,default=False)
+    
+    

@@ -5,9 +5,26 @@ from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm,Secu
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import  ValidationError
-from schema import User,Token,TokenData,UserInDB,UserIn
-from models import loginTable
+from schema import User,Token,TokenData,UserInDB,UserIn,TodoIn,TodoSchema
+from models import loginTable,Todo
 from connection import session
+from fastapi.middleware.cors import CORSMiddleware
+
+app = FastAPI()
+
+origins = [
+    "http://localhost",
+    "http://localhost:8080",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 # openssl rand -hex 32
 SECRET_KEY = "af5e0fe38f983eb30e6eff86bb96d46071c7fe8bf80de8942d9e39ba9c08b193"
@@ -172,6 +189,36 @@ async def fetch_all_users(
     result = [User(**model_to_dict(i)) for i in res]
     return result
 
+
+@app.get("/todo/get",tags=["Todo"])
+async def get_todos(current_user: User = Security(get_current_active_user,scopes=["basic"])):
+    res = session.query(Todo).filter(Todo.username == current_user.username ).all()
+    return [TodoSchema(**model_to_dict(i)) for i in res]
+
+@app.post("/todo/add",tags=["Todo"])
+async def post_todos(todo:TodoIn,current_user: User = Security(get_current_active_user,scopes=["basic"])):
+    new_todo = Todo(username=current_user.username,todo=todo.todo,description=todo.description,status=todo.status)
+    session.add(new_todo)
+    session.commit()
+    return {"message":"Added Successfully"}
+@app.put("/todo/update",tags=["Todo"])
+async def post_todos(todo:TodoSchema,current_user: User = Security(get_current_active_user,scopes=["basic"])):
+    ut = session.query(Todo).filter(Todo.id == todo.id).first()
+    ut.todo,ut.description,ut.status = todo.todo,todo.description,todo.status
+    session.commit()
+    return model_to_dict(todo)
+    
+@app.delete("/todo/remove",tags=["Todo"])
+async def delete_todo(todo:TodoSchema,current_user: User = Security(get_current_active_user,scopes=["basic"])):
+    res = session.query(Todo).filter(Todo.id == todo.id).first()
+    if res:
+        session.delete(res)
+        session.commit()
+        return {"message":"deleted Successfully"}
+    else:
+        return {"message":"Todo not Found"}
+    
+    
 @app.get("/status/",tags=["Status"])
-async def read_system_status(current_user: User = Depends(get_current_user)):
+async def read_system_status():
     return {"status": "ok"}
