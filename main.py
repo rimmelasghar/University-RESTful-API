@@ -6,7 +6,7 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import  ValidationError
 from schema import User,Token,TokenData,UserInDB,UserIn,TodoIn,TodoSchema
-from models import loginTable,Todo
+from models import loginTable,Todo,Course
 from connection import session
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -15,6 +15,7 @@ app = FastAPI()
 origins = [
     "http://localhost",
     "http://localhost:8080",
+    "http://localhost:3000/",
 ]
 
 app.add_middleware(
@@ -218,7 +219,25 @@ async def delete_todo(todo:TodoSchema,current_user: User = Security(get_current_
     else:
         return {"message":"Todo not Found"}
     
-    
+
+# Course
+@app.get("/courses/",tags=["Courses"])
+async def get_courses():
+    res = session.query(Course).all()
+    return [model_to_dict(i) for i in res ]
+
+# TimeTable
+@app.get("/courses/",tags=["Courses"])
+async def get_courses():
+    res = session.query(Course).all()
+    return [model_to_dict(i) for i in res ]
+
+
 @app.get("/status/",tags=["Status"])
 async def read_system_status():
     return {"status": "ok"}
+
+# un comment when using first time
+# new_user = loginTable(username="admin",email="admin@admin",full_name="admin",disabled=False,password=get_password_hash("admin"))
+# session.add(new_user)
+# session.commit()
