@@ -73,3 +73,18 @@ class RoomSchema(BaseModel):
 class RoomIn(BaseModel):
     room_name : str
     capacity : int
+
+class TimeTableSchema(BaseModel):
+    id : int 
+    course_id : int
+    time : str
+    room_id : int
+    class_id : int
+    day : str
+
+class TimeTableIn(BaseModel):
+    course_id : int
+    time : str
+    room_id : int
+    class_id : int
+    day : str

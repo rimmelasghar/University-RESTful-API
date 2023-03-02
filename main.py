@@ -5,18 +5,21 @@ from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm,Secu
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import  ValidationError
-from schema import ClassIn, ClassSchema, RoomIn, RoomSchema, User,Token,TokenData,UserInDB,UserIn,TodoIn,TodoSchema,CourseSchema,CourseIn
-from models import Class, Room, loginTable,Todo,Course
+from schema import ClassIn, ClassSchema, RoomIn, RoomSchema, User,Token,TokenData,UserInDB,UserIn,TodoIn,TodoSchema,CourseSchema,CourseIn,TimeTableIn,TimeTableSchema
+from models import Class, Room, loginTable,Todo,Course,TimeTable
 from connection import session
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
-origins = [
-    "http://localhost",
-    "http://localhost:8080",
-    "http://localhost:3000/",
-]
+# origins = [
+#     "http://localhost",
+#     "http://localhost:8080",
+#     "http://localhost:3000/",
+# ]
+
+origins = ["*"]
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -317,13 +320,40 @@ async def delete_room(room:RoomSchema):
 
 # TimeTable
 
+@app.get("/timetable/",tags=["timetable"],response_model=List[TimeTableSchema])
+async def get_timetable():
+    res = session.query(TimeTable).all()
+    return [model_to_dict(i) for i in res ]
+
+@app.post("/timetable/add",tags=["timetable"],response_model=TimeTableIn)
+async def add_timetable(timetable:TimeTableIn):
+    new_timetable = TimeTable(course_id = timetable.course_id,time = timetable.time,room_id = timetable.room_id, class_id=timetable.class_id,day = timetable.day)
+    session.add(new_timetable)
+    session.commit()
+    return timetable
+
+@app.put("/timetable/update",tags=["timetable"])
+async def update_timetable(timetable:TimeTableSchema):
+    ut = session.query(TimeTable).filter(TimeTable.id == timetable.id).first()
+    if ut:
+        ut.course_id, ut.time, ut.room_id, ut.class_id, ut.day = timetable.course_id,timetable.time, timetable.room_id, timetable.class_id,timetable.day
+        session.commit()
+        return {"message":"TimeTable Updated Successfully"}
+    else:
+        return {"message":"Row not Found"}
+
+@app.delete("/timetable/delete",tags=["timetable"])
+async def delete_room(timetable:TimeTableSchema):
+    res = delete_row_by_id(TimeTable,timetable.id)
+    return res
 
 
+# Status
 @app.get("/status/",tags=["Status"])
 async def read_system_status():
     return {"status": "ok"}
 
-# un comment when using first time
+# uncomment when using first time
 # new_user = loginTable(username="admin",email="admin@admin",full_name="admin",disabled=False,password=get_password_hash("admin"))
 # session.add(new_user)
 # session.commit()

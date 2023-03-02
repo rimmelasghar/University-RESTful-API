@@ -1,0 +1,1 @@
+timetable.course_id, timetable.time     , timetable.room_id  , timetable.class_id , timetable.day
