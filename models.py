@@ -74,3 +74,4 @@ class TimeTable(Base):
         ForeignKeyConstraint(['class_id'], ['class.id']),
         ForeignKeyConstraint(['room_id'], ['room.id']),
     )    
+

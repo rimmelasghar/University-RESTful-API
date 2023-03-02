@@ -319,7 +319,7 @@ async def delete_room(room:RoomSchema):
     return res
 
 # TimeTable
-
+# This Contains End Point of Every Time Table
 @app.get("/timetable/",tags=["timetable"],response_model=List[TimeTableSchema])
 async def get_timetable():
     res = session.query(TimeTable).all()
@@ -348,10 +348,12 @@ async def delete_room(timetable:TimeTableSchema):
     return res
 
 
+
 # Status
 @app.get("/status/",tags=["Status"])
 async def read_system_status():
     return {"status": "ok"}
+
 
 # uncomment when using first time
 # new_user = loginTable(username="admin",email="admin@admin",full_name="admin",disabled=False,password=get_password_hash("admin"))
