@@ -40,3 +40,36 @@ class TodoIn(BaseModel):
     todo : str
     description: Union[str,None] = None
     status: Union[bool, None] = None
+
+class CourseSchema(BaseModel):
+    id : int
+    course_name : str
+    course_code : str
+    credit : int
+
+class CourseIn(BaseModel):
+    course_name : str
+    course_code : str
+    credit : int
+
+class ClassSchema(BaseModel):
+    id : int
+    section_name : str
+    department : str
+    no_of_students : int
+    capacity : int
+
+class ClassIn(BaseModel):
+    section_name : str
+    department : str
+    no_of_students : int
+    capacity : int
+
+class RoomSchema(BaseModel):
+    id : int
+    room_name : str
+    capacity : int
+
+class RoomIn(BaseModel):
+    room_name : str
+    capacity : int

@@ -5,8 +5,8 @@ from fastapi.security import OAuth2PasswordBearer,OAuth2PasswordRequestForm,Secu
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import  ValidationError
-from schema import User,Token,TokenData,UserInDB,UserIn,TodoIn,TodoSchema
-from models import loginTable,Todo,Course
+from schema import ClassIn, ClassSchema, RoomIn, RoomSchema, User,Token,TokenData,UserInDB,UserIn,TodoIn,TodoSchema,CourseSchema,CourseIn
+from models import Class, Room, loginTable,Todo,Course
 from connection import session
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -139,6 +139,14 @@ def delete_row(MyModel, row_username: str):
     else:
         return {"message": "Row not found."}
     
+def delete_row_by_id(MyModel, row_id: str):
+    row = session.query(MyModel).filter(MyModel.id == row_id).first()
+    if row:
+        session.delete(row)
+        session.commit()
+        return {"message": "Row deleted successfully."}
+    else:
+        return {"message": "Row not found."}   
     
 @app.post("/token", response_model=Token,tags=["Auth"])
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
@@ -221,16 +229,94 @@ async def delete_todo(todo:TodoSchema,current_user: User = Security(get_current_
     
 
 # Course
-@app.get("/courses/",tags=["Courses"])
+@app.get("/courses/",tags=["Courses"],response_model=List[CourseSchema])
 async def get_courses():
     res = session.query(Course).all()
     return [model_to_dict(i) for i in res ]
 
-# TimeTable
-@app.get("/courses/",tags=["Courses"])
-async def get_courses():
-    res = session.query(Course).all()
+@app.post("/courses/add",tags=["Courses"],response_model=CourseIn)
+async def add_courses(course:CourseIn):
+    new_course = Course(course_name = course.course_name,course_code = course.course_code,credit=course.credit)
+    session.add(new_course)
+    session.commit()
+    return course
+
+@app.put("/courses/update",tags=["Courses"])
+async def update_course(course:CourseSchema):
+    ut = session.query(Course).filter(Course.id == course.id).first()
+    if ut:
+        ut.course_name,ut.course_code,ut.credit = course.course_name,course.course_code,course.credit
+        session.commit()
+        return {"message":"Course Updated Successfully"}
+    else:
+        return {"message":"Row not Found"}
+
+@app.delete("/courses/delete",tags=["Courses"])
+async def delete_course(course:CourseSchema):
+    res = delete_row_by_id(Course,course.id)
+    return res
+
+
+# Class
+@app.get("/class/",tags=["Classes"],response_model=List[ClassSchema])
+async def get_classes():
+    res = session.query(Class).all()
     return [model_to_dict(i) for i in res ]
+
+@app.post("/class/add",tags=["Classes"],response_model=ClassIn)
+async def add_class(classes:ClassIn):
+    new_class = Class(section_name = classes.section_name,department=classes.department,no_of_students=classes.no_of_students,capacity=classes.capacity)
+    session.add(new_class)
+    session.commit()
+    return classes
+
+    
+@app.put("/class/update",tags=["Classes"])
+async def update_class(classes:ClassSchema):
+    ut = session.query(Class).filter(Class.id == classes.id).first()
+    if ut:
+        ut.section_name,ut.department,ut.no_of_students,ut.capacity = classes.section_name,classes.department,classes.no_of_students,classes.capacity
+        session.commit()
+        return {"message":"Classes Updated Successfully"}
+    else:
+        return {"message":"Row not Found"}
+
+@app.delete("/class/delete",tags=["Classes"])
+async def delete_class(classes:ClassSchema):
+    res = delete_row_by_id(Course,classes.id)
+    return res
+
+#Room
+
+@app.get("/room/",tags=["Room"],response_model=List[RoomSchema])
+async def get_room():
+    res = session.query(Room).all()
+    return [model_to_dict(i) for i in res ]
+
+@app.post("/room/add",tags=["Room"],response_model=RoomIn)
+async def add_room(room:RoomIn):
+    new_room = Room(room_name = room.room_name,capacity = room.capacity)
+    session.add(new_room)
+    session.commit()
+    return room
+
+@app.put("/room/update",tags=["Room"])
+async def update_room(room:RoomSchema):
+    ut = session.query(Room).filter(Room.id == room.id).first()
+    if ut:
+        ut.room_name,ut.capacity = room.room_name,room.capacity
+        session.commit()
+        return {"message":"room Updated Successfully"}
+    else:
+        return {"message":"Row not Found"}
+
+@app.delete("/room/delete",tags=["Room"])
+async def delete_room(room:RoomSchema):
+    res = delete_row_by_id(Room,room.id)
+    return res
+
+# TimeTable
+
 
 
 @app.get("/status/",tags=["Status"])
@@ -241,3 +327,4 @@ async def read_system_status():
 # new_user = loginTable(username="admin",email="admin@admin",full_name="admin",disabled=False,password=get_password_hash("admin"))
 # session.add(new_user)
 # session.commit()
+
